@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!-- 
+
+	This file defines properties for all servers. By convention the qualifier of each container
+	is the same name as the Maven profile that contains the Arquillian dependencies for that
+	container.
+	
+	Placeholders are referenced in [parent project]/container.properties.
+
+ -->
+<arquillian xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://jboss.org/schema/arquillian"
+	xsi:schemaLocation="http://jboss.org/schema/arquillian
+    http://jboss.org/schema/arquillian/arquillian_1_0.xsd">
+
+	<container qualifier="arquillian-glassfish3-embedded" default="true"/>
+	
+	<container qualifier="arquillian-glassfish4-managed">
+		<configuration>
+			<property name="glassFishHome">${GLASSFISH4_HOME}</property>
+		</configuration>
+	</container>
+	
+	<container qualifier="arquillian-jbossas72-managed">
+		<configuration>
+			<property name="jbossHome">${JBOSS72_HOME}</property>
+		</configuration>
+	</container>
+	
+	<container qualifier="arquillian-weblogic121-remote">
+        <configuration>
+            <property name="adminUrl">t3://localhost:7001</property>
+            <property name="adminUserName">${WEBLOGIC121_USERNAME}</property>
+            <property name="adminPassword">${WEBLOGIC121_PASSWORD}</property>
+            <property name="target">${WEBLOGIC121_TARGET}</property>
+            <property name="wlsHome">${WEBLOGIC121_HOME}</property>
+            <!-- weblogicJarPath should be deduced automatically, but it didn't. Maybe it only works on 12.1.1? -->
+            <property name="weblogicJarPath">${WEBLOGIC121_HOME}/wlserver/server/lib/weblogic.jar</property>
+        </configuration>
+    </container>
+
+</arquillian>

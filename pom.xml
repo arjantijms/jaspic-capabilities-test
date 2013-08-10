@@ -1,0 +1,250 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.omnifaces</groupId>
+	<artifactId>jaspic-capabilities-test</artifactId>
+	<version>1.0</version>
+	<packaging>pom</packaging>
+
+	
+	<!-- With the exception of the common module, each module in the modules section below builds a war archive 
+		 including a SAM that helps in exercising a specific JASPIC functionality.
+	-->
+	<modules>
+		<module>common</module>
+		<module>basic-authentication</module>
+		<module>lifecycle</module>
+		<module>register-session-simple</module>
+		<module>ejb-propagation</module>
+	</modules>
+
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    	<main.basedir>${project.basedir}</main.basedir>
+	</properties>
+
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.jboss.arquillian</groupId>
+				<artifactId>arquillian-bom</artifactId>
+				<version>1.1.0.Final</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
+
+			<!-- We run the tests in the integration test phase so they can use the war archive build by Maven  -->
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.15</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<systemPropertiesFile>${main.basedir}/containers.properties</systemPropertiesFile>
+					<systemPropertyVariables>
+						<testJaspic11>${testJaspic11}</testJaspic11>
+      					<arquillian.launch>${arquillian.launch}</arquillian.launch>
+    				</systemPropertyVariables>
+					<aggregate>true</aggregate>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+	
+
+	<!-- The test dependencies; JUnit based Arquillian & Drone -->
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.arquillian.junit</groupId>
+			<artifactId>arquillian-junit-container</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.arquillian.extension</groupId>
+			<artifactId>arquillian-drone-webdriver-depchain</artifactId>
+			<version>1.1.1.Final</version>
+			<type>pom</type>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-failsafe-plugin</artifactId>
+			<version>2.15</version>
+		</dependency>
+	</dependencies>
+
+
+
+	<!-- 
+		Profiles define the Arquillian Server Containers which can start up one of the
+		application servers on which we test JASPIC and deploy the test archives to it.
+		
+		Unfortunately configuration properties for each Server Container have to be defined
+		in a separate file: arquillian.xml. Each container entry in that file is linked
+		to its corresponding profile via the "arquillian.launch" property here, which then
+		becomes a system environment variable for the maven-failsafe-plugin defined above
+		(yes this is a bit convoluted). By convention the value of each arquillian.launch 
+		property is the same as the profile id.
+		
+		Note that most profiles include the Java EE 6 API dependency, since despite it being
+		set to the provided scope, Maven still seems to feel the need to put it somewhere
+		on the classpath, crashing GlassFish 3 embedded.
+	 -->
+	<profiles>
+
+		<!-- GlassFish 3 is one of the very few containers that actually works embedded -->
+		<profile>
+			<id>arquillian-glassfish3-embedded</id>
+			
+			<properties>
+     			<arquillian.launch>arquillian-glassfish3-embedded</arquillian.launch>
+    		</properties>
+			
+			<activation>
+            	<activeByDefault>true</activeByDefault>
+        	</activation>
+			
+			<dependencies>
+				<dependency>
+					<groupId>org.jboss.arquillian.container</groupId>
+					<artifactId>arquillian-glassfish-embedded-3.1</artifactId>
+					<version>1.0.0.CR4</version>
+					<scope>test</scope>
+				</dependency>
+				
+				<dependency>
+					<groupId>org.glassfish.main.extras</groupId>
+					<artifactId>glassfish-embedded-all</artifactId>
+					<version>3.1.2.2</version>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+		
+		<!-- Use managed GlassFish 4. Embedded variant starts, but doesn't work with JSP which some tests use. TODO: remove JSP? -->
+		<profile>
+			<id>arquillian-glassfish4-managed</id>
+			
+			<properties>
+     			<arquillian.launch>arquillian-glassfish4-managed</arquillian.launch>
+     			<testJaspic11>true</testJaspic11>
+    		</properties>
+			
+			<dependencies>
+				<dependency>
+					<groupId>org.jboss.spec</groupId>
+					<artifactId>jboss-javaee-6.0</artifactId>
+					<version>1.0.0.Final</version>
+					<type>pom</type>
+					<scope>provided</scope>
+				</dependency>
+			
+				<dependency>
+					<groupId>org.jboss.arquillian.container</groupId>
+					<artifactId>arquillian-glassfish-managed-3.1</artifactId>
+					<version>1.0.0.CR4</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<!-- For JBoss AS 7.2/EAP 6,1 use managed variant since embedded just doesn't work. It has never worked :( -->
+		<profile>
+			<id>arquillian-jbossas72-managed</id>
+			
+			<properties>
+     			<arquillian.launch>arquillian-jbossas72-managed</arquillian.launch>
+    		</properties>
+			
+			<dependencies>
+				<dependency>
+					<groupId>org.jboss.spec</groupId>
+					<artifactId>jboss-javaee-6.0</artifactId>
+					<version>1.0.0.Final</version>
+					<type>pom</type>
+					<scope>provided</scope>
+				</dependency>
+		
+				<dependency>
+					<groupId>org.jboss.as</groupId>
+					<artifactId>jboss-as-arquillian-container-managed</artifactId>
+					<version>7.2.0.Final</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+		
+		<!-- At the moment there's only a remote container in Maven central. The managed
+			 version exists, but for some reason has not been released yet.
+		 -->
+		<profile>
+			<id>arquillian-weblogic121-remote</id>
+			
+			<properties>
+     			<arquillian.launch>arquillian-weblogic121-remote</arquillian.launch>
+    		</properties>
+			
+			<dependencies>
+				<dependency>
+					<groupId>org.jboss.spec</groupId>
+					<artifactId>jboss-javaee-6.0</artifactId>
+					<version>1.0.0.Final</version>
+					<type>pom</type>
+					<scope>provided</scope>
+				</dependency>
+		
+				<dependency>
+					<groupId>org.jboss.arquillian.container</groupId>
+					<artifactId>arquillian-wls-remote-12.1</artifactId>
+					<version>1.0.0.Alpha2</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+
+	</profiles>
+
+</project>
