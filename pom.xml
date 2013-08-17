@@ -15,6 +15,7 @@
 		<module>common</module>
 		<module>basic-authentication</module>
 		<module>lifecycle</module>
+		<module>wrapping</module>
 		<module>register-session-simple</module>
 		<module>ejb-propagation</module>
 	</modules>
