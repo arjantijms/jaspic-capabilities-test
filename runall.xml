@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
+
+<!-- 
+
+	This Ant file runs the maven build with all profiles.
+
+-->
+<project name="jaspic-capabilities-test" default="all" basedir=".">
+
+	<loadproperties srcFile="containers.properties"/>
+
+	<target name="all" description="Runs all" 
+		depends="arquillian-glassfish-embedded-3.1, arquillian-glassfish4-managed, arquillian-jbossas72-managed, arquillian-weblogic121-remote"
+	/>
+	
+	<target name="arquillian-glassfish-embedded-3.1">
+		<test profile="arquillian-glassfish-embedded-3.1" />
+	</target>
+	
+	<target name="arquillian-glassfish4-managed">
+		<test profile="arquillian-glassfish4-managed" />
+	</target>
+	
+	<target name="arquillian-jbossas72-managed">
+		<test profile="arquillian-jbossas72-managed" />
+	</target>
+	
+	<!-- 
+		For WebLogic we add tasks to start and stop the server since the Arquillian container can't do this. This
+		won't be needed anymore when Arquillian releases the managed variant.
+	-->
+	<target name="arquillian-weblogic121-remote">
+		<weblogic121 action="start"/>
+		<test profile="arquillian-weblogic121-remote" />
+		<weblogic121 action="shutdown"/>
+	</target>
+	
+	
+	<macrodef name="test">
+		<attribute name="profile" />
+		<sequential>
+			<echo>
+				Running tests for @{profile}
+				
+			</echo>
+			<exec executable="mvn">
+				<arg line="--fail-at-end clean verify -P @{profile}" />
+			</exec>
+			<echo>
+				Tests for @{profile} finished
+			</echo>
+		</sequential>
+	</macrodef>
+	
+	<taskdef name="wlserver" classname="weblogic.ant.taskdefs.management.WLServer">
+		<classpath>  
+  			<pathelement location="${WEBLOGIC121_HOME}/wlserver/server/lib/weblogic.jar"/>  
+  		</classpath>
+	</taskdef>
+	
+	<macrodef name="weblogic121">
+		<attribute name="action" />
+		<sequential>
+			<wlserver action="@{action}" 
+				weblogichome="${WEBLOGIC121_HOME}"
+				dir="${WEBLOGIC121_HOME}/${WEBLOGIC121_DOMAIN}"
+				domainname="${WEBLOGIC121_DOMAIN}" servername="${WEBLOGIC121_TARGET}" 
+				username="${WEBLOGIC121_USERNAME}" password="${WEBLOGIC121_PASSWORD}"
+				classpath="${WEBLOGIC121_HOME}/wlserver/server/lib/weblogic.jar"
+				forceshutdown="true"
+			>
+				<jvmarg value="-server" />
+				<jvmarg value="-Xms256m" />
+				<jvmarg value="-Xmx512m" />
+				<jvmarg value="-XX:PermSize=128m" />
+				<jvmarg value="-XX:MaxPermSize=256m" />
+			</wlserver>
+		</sequential>
+	</macrodef>
+
+</project>
