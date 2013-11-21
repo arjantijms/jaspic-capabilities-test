@@ -17,6 +17,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.net.URL;
+import java.util.logging.Logger;
 
 import org.jboss.arquillian.drone.api.annotation.Drone;
 import org.jboss.arquillian.junit.Arquillian;
@@ -32,8 +33,11 @@ import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.WebDriver;
 
+
 @RunWith(Arquillian.class)
 public class ArquillianBase {
+	
+	static final Logger logger = Logger.getLogger("ArquillianBase");
 	
 	@Drone
     protected WebDriver driver;
@@ -42,16 +46,30 @@ public class ArquillianBase {
 	protected URL deploymentUrl;
 	
 	public static WebArchive fromWar(String warName) {
+
+		String jbossWebXmlVersion = null;
 		try {
-		return ShrinkWrap.create(ZipImporter.class, warName + ".war")
-						 .importFrom(new File("target/jaspic-capabilities-test-" + warName + "-1.0.war"))
-						 .as(WebArchive.class);
+			jbossWebXmlVersion = getProperty("jbossWebXmlVersion");
+			logger.info("jbossWebXmlVersion:"+jbossWebXmlVersion);
+		} catch (Exception e) {
+			logger.info("jbossWebXmlVersion not set");
+		}
+
+		try {
+			WebArchive war = ShrinkWrap
+					.create(ZipImporter.class, warName + ".war")
+					.importFrom(new File("target/jaspic-capabilities-test-" + warName + "-1.0.war"))
+					.as(WebArchive.class);
+			if (jbossWebXmlVersion != null) {
+				war.addAsWebInfResource(new File("src/main/webapp/WEB-INF/jboss-web"+ jbossWebXmlVersion + ".xml"), "jboss-web.xml");
+			}
+			return war;
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
-		
+
 	}
 	
 	@Rule
