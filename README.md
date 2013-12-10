@@ -12,3 +12,15 @@ To get started:
 Alternatively the Ant file runall.xml can be used to run the tests for more than one server in succession. Via the Ant file WebLogic can be started
 and stopped automatically as part of the test. This is not possible via Maven (the Arquillian container doesn't support it). When using
 only Maven then WebLogic needs to be started manually prior to starting the test.
+
+For Wildfly you MUST add the following security domain in standalone.xml to enable JASPI:
+
+<security-domain name="jaspitest" cache-type="default">
+    <authentication-jaspi>
+        <login-module-stack name="dummy">
+            <login-module code="Dummy" flag="optional"/>
+        </login-module-stack>
+        <auth-module code="Dummy"/>
+    </authentication-jaspi>
+</security-domain>
+
