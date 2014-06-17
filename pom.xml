@@ -39,6 +39,13 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+    
+    <repositories>
+        <repository>
+            <id>jboss-public</id>
+            <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+        </repository>
+    </repositories>
 
 
 	<build>
@@ -257,22 +264,29 @@
      			<arquillian.launch>arquillian-weblogic121-remote</arquillian.launch>
     		</properties>
 			
-			<dependencies>
-				<dependency>
-					<groupId>org.jboss.spec</groupId>
-					<artifactId>jboss-javaee-6.0</artifactId>
-					<version>1.0.0.Final</version>
-					<type>pom</type>
-					<scope>provided</scope>
-				</dependency>
-		
-				<dependency>
-					<groupId>org.jboss.arquillian.container</groupId>
-					<artifactId>arquillian-wls-remote-12.1</artifactId>
-					<version>1.0.0.Alpha2</version>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.spec</groupId>
+                    <artifactId>jboss-javaee-6.0</artifactId>
+                    <version>1.0.0.Final</version>
+                    <type>pom</type>
+                    <scope>provided</scope>
+                </dependency>
+            
+                <dependency>
+                    <groupId>org.jboss.arquillian.container</groupId>
+                    <artifactId>arquillian-wls-remote-12.1</artifactId>
+                    <version>1.0.0.Final-SNAPSHOT</version>
+                    <scope>test</scope>
+                </dependency>
+            
+                <dependency>
+                    <groupId>wlfullclient.jar</groupId>
+                    <artifactId>wlfullclient.jar</artifactId>
+                    <version>12.1.2</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
 		</profile>
 
 	</profiles>
