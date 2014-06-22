@@ -281,8 +281,8 @@
                 </dependency>
             
                 <dependency>
-                    <groupId>wlfullclient.jar</groupId>
-                    <artifactId>wlfullclient.jar</artifactId>
+                    <groupId>wlthint3client.jar</groupId>
+                    <artifactId>wlthint3client.jar</artifactId>
                     <version>12.1.2</version>
                     <scope>test</scope>
                 </dependency>
